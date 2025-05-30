@@ -20,7 +20,7 @@ This project analyzes the impact of **higher education** on economic growth in *
 |------------------|---------------------------------|---------------------------------|
 | **Gov. Education Spending** | ✅ Positive impact (+4.7% GDP) | ❌ Negative impact (-3.6% GDP) |
 | **Capital Expenditure**     | ✅ Positive (0.32 coeff.)       | ✅ Strong positive (0.66 coeff.) |
-| **Unemployment**           | ❌ Significant negative effect  | ➖ No significant effect        |
+| **Unemployment Rate**           | ❌ Significant negative effect  | ➖ No significant effect        |
 | **COVID-19 Impact**        | ➖ No significant effect        | ➖ No significant effect        |
 
 - **Education’s GDP Impact**: Statistically weak in both countries.  
@@ -32,7 +32,7 @@ This project analyzes the impact of **higher education** on economic growth in *
 1. **Model**: Cobb-Douglas production function with OLS regression.  
 2. **Variables**:  
    - Dependent: GDP growth rate  
-   - Independent: Education expenditure, R&D, unemployment, capital formation.  
+   - Independent: Education expenditure, R&D, unemployment rate, capital formation.  
 3. **Tools**: Stata for regression analysis.  
 
 ---
