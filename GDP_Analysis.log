@@ -1,0 +1,433 @@
+------------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  E:\My University Doc\Fourth Semester\Research Proj Econ Pol & Sem\Proj\GDP_Analysis.log
+  log type:  text
+ opened on:   4 Dec 2024, 13:52:01
+
+. 
+. // Import data using insheet
+. insheet using "`path'"
+(8 vars, 48 obs)
+
+. 
+. // Check the structure of the data
+. describe
+
+Contains data
+ Observations:            48                  
+    Variables:             8                  
+------------------------------------------------------------------------------------------------------------------------------------------------
+Variable      Storage   Display    Value
+    name         type    format    label      Variable label
+------------------------------------------------------------------------------------------------------------------------------------------------
+year            int     %8.0g                 ﻿year
+country         str6    %9s                   
+gdp             float   %9.0g                 GDP
+gove            float   %9.0g                 GovE
+edu             float   %9.0g                 Edu
+cap             float   %9.0g                 Cap
+rd              float   %9.0g                 RD
+unr             float   %9.0g                 Unr
+------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+. 
+. // Check the number of observations for each country
+. count if country == "Canada"
+  24
+
+. di "Observations for Canada: " r(N)
+Observations for Canada: 24
+
+. 
+. count if country == "China"
+  24
+
+. di "Observations for China: " r(N)
+Observations for China: 24
+
+. 
+. // Check for any missing values in key variables
+. misstable summarize gdp gove edu cap rd unr
+(variables nonmissing or string)
+
+. 
+. // Generate GDP and other variables
+. gen y = gdp
+
+. gen GovE_var = gove
+
+. gen Edu_var = edu
+
+. gen Cap_var = cap
+
+. gen RD_var = rd
+
+. gen Unr_var = unr
+
+. 
+. // Create a dummy variable for COVID-19 (1 for 2019, 2020, 2021)
+. gen covid_dummy = (year >= 2019 & year <= 2021) // Assuming 'year' is a variable in your dataset
+
+. 
+. //---------------------
+. // Analysis for Canada
+. //---------------------
+. 
+. // Filter for Canada
+. preserve
+
+. keep if country == "Canada"
+(24 observations deleted)
+
+. 
+. // Check for missing values
+. misstable summarize y GovE_var Edu_var Cap_var RD_var Unr_var covid_dummy
+(variables nonmissing or string)
+
+. 
+. // Run regressions on raw variables including the COVID dummy and withot COVID dummy
+. di as text "Regression Results for Canada"
+Regression Results for Canada
+
+. reg y GovE_var Edu_var Cap_var RD_var Unr_var 
+
+      Source |       SS           df       MS      Number of obs   =        24
+-------------+----------------------------------   F(5, 18)        =      2.21
+       Model |  .004535491         5  .000907098   Prob > F        =    0.0982
+    Residual |  .007386458        18  .000410359   R-squared       =    0.3804
+-------------+----------------------------------   Adj R-squared   =    0.2083
+       Total |  .011921949        23  .000518346   Root MSE        =    .02026
+
+------------------------------------------------------------------------------
+           y | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+    GovE_var |   4.696022   2.087171     2.25   0.037     .3110388    9.081006
+     Edu_var |   .0406265   .0325713     1.25   0.228    -.0278033    .1090563
+     Cap_var |   .3175733   .3790504     0.84   0.413     -.478782    1.113929
+      RD_var |   4.444972    4.32202     1.03   0.317    -4.635255     13.5252
+     Unr_var |  -1.322996   .5334112    -2.48   0.023    -2.443651   -.2023408
+       _cons |  -.2811719   .1846904    -1.52   0.145    -.6691919    .1068481
+------------------------------------------------------------------------------
+
+. matrix list e(b)
+
+e(b)[1,6]
+      GovE_var     Edu_var     Cap_var      RD_var     Unr_var       _cons
+y1   4.6960222   .04062652    .3175733   4.4449722  -1.3229961  -.28117189
+
+. reg y GovE_var Edu_var Cap_var RD_var Unr_var covid_dummy
+
+      Source |       SS           df       MS      Number of obs   =        24
+-------------+----------------------------------   F(6, 17)        =      1.74
+       Model |  .004535594         6  .000755932   Prob > F        =    0.1722
+    Residual |  .007386355        17  .000434491   R-squared       =    0.3804
+-------------+----------------------------------   Adj R-squared   =    0.1618
+       Total |  .011921949        23  .000518346   Root MSE        =    .02084
+
+------------------------------------------------------------------------------
+           y | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+    GovE_var |   4.701345   2.175298     2.16   0.045     .1118683    9.290822
+     Edu_var |   .0406462   .0335398     1.21   0.242    -.0301165     .111409
+     Cap_var |   .3177075   .3901342     0.81   0.427    -.5054037    1.140819
+      RD_var |   4.456016    4.50473     0.99   0.336    -5.048133    13.96016
+     Unr_var |  -1.325986   .5822041    -2.28   0.036     -2.55433   -.0976432
+ covid_dummy |   .0002125   .0137952     0.02   0.988    -.0288928    .0293177
+       _cons |  -.2814782   .1910816    -1.47   0.159    -.6846253    .1216688
+------------------------------------------------------------------------------
+
+. matrix list e(b)
+
+e(b)[1,7]
+       GovE_var      Edu_var      Cap_var       RD_var      Unr_var  covid_dummy        _cons
+y1     4.701345    .04064622    .31770747    4.4560158   -1.3259865    .00021246   -.28147824
+
+. // Compute first differences for raw variables
+. gen lagy_can = y[_n-1]
+(1 missing value generated)
+
+. 
+. gen lagGovE_can = GovE_var[_n-1]
+(1 missing value generated)
+
+. 
+. gen lagEdu_can = Edu_var[_n-1]
+(1 missing value generated)
+
+. 
+. gen lagCap_can = Cap_var[_n-1]
+(1 missing value generated)
+
+. 
+. gen lagRD_can = RD_var[_n-1]
+(1 missing value generated)
+
+. 
+. gen lagUnr_can = Unr_var[_n-1]
+(1 missing value generated)
+
+. 
+. 
+. // Run regression on first differences for raw variables including the COVID dummy and withot COVID dummy
+. di as text "Lag egression Results for Canada"
+Lag egression Results for Canada
+
+. reg y GovE_var Edu_var Cap_var RD_var Unr_var lagy_can lagGovE_can lagEdu_can lagCap_can lagRD_can lagUnr_can
+
+      Source |       SS           df       MS      Number of obs   =        23
+-------------+----------------------------------   F(11, 11)       =     19.07
+       Model |  .010243266        11  .000931206   Prob > F        =    0.0000
+    Residual |  .000537037        11  .000048822   R-squared       =    0.9502
+-------------+----------------------------------   Adj R-squared   =    0.9004
+       Total |  .010780303        22  .000490014   Root MSE        =    .00699
+
+------------------------------------------------------------------------------
+           y | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+    GovE_var |   .9290327   1.096856     0.85   0.415    -1.485132    3.343197
+     Edu_var |  -.0208608   .0178504    -1.17   0.267    -.0601493    .0184277
+     Cap_var |   .0443562    .321257     0.14   0.893    -.6627258    .7514382
+      RD_var |   1.950846    4.65865     0.42   0.683    -8.302773    12.20446
+     Unr_var |   -1.68563   .2478028    -6.80   0.000    -2.231041    -1.14022
+    lagy_can |   .0537099   .1194829     0.45   0.662    -.2092701    .3166899
+ lagGovE_can |  -.5766273    1.09186    -0.53   0.608    -2.979794     1.82654
+  lagEdu_can |  -.0285809   .0208801    -1.37   0.198    -.0745378     .017376
+  lagCap_can |  -.1568557   .3228083    -0.49   0.637    -.8673519    .5536405
+   lagRD_can |   .9972617   4.797223     0.21   0.839    -9.561356    11.55588
+  lagUnr_can |   1.850004   .3703013     5.00   0.000     1.034976    2.665031
+       _cons |  -.0485599   .0948884    -0.51   0.619    -.2574078     .160288
+------------------------------------------------------------------------------
+
+. matrix list e(b)
+
+e(b)[1,12]
+       GovE_var      Edu_var      Cap_var       RD_var      Unr_var     lagy_can  lagGovE_can   lagEdu_can   lagCap_can    lagRD_can
+y1    .92903266   -.02086079    .04435624    1.9508458   -1.6856303    .05370993   -.57662733   -.02858089   -.15685568     .9972617
+
+     lagUnr_can        _cons
+y1    1.8500039    -.0485599
+
+. reg y GovE_var Edu_var Cap_var RD_var Unr_var lagy_can lagGovE_can lagEdu_can lagCap_can lagRD_can lagUnr_can  covid_dummy
+
+      Source |       SS           df       MS      Number of obs   =        23
+-------------+----------------------------------   F(12, 10)       =     16.03
+       Model |  .010247463        12  .000853955   Prob > F        =    0.0001
+    Residual |   .00053284        10  .000053284   R-squared       =    0.9506
+-------------+----------------------------------   Adj R-squared   =    0.8913
+       Total |  .010780303        22  .000490014   Root MSE        =     .0073
+
+------------------------------------------------------------------------------
+           y | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+    GovE_var |   1.160729   1.412319     0.82   0.430    -1.986114    4.307572
+     Edu_var |   -.019643   .0191465    -1.03   0.329    -.0623041    .0230181
+     Cap_var |   .0107615   .3563269     0.03   0.977    -.7831842    .8047072
+      RD_var |   2.194695   4.943857     0.44   0.667    -8.820904    13.21029
+     Unr_var |  -1.713541   .2773257    -6.18   0.000    -2.331461   -1.095621
+    lagy_can |   .0850606   .1675109     0.51   0.623     -.288177    .4582981
+ lagGovE_can |  -.7843246   1.359715    -0.58   0.577    -3.813959     2.24531
+  lagEdu_can |  -.0282916   .0218379    -1.30   0.224    -.0769494    .0203662
+  lagCap_can |  -.1084553   .3787777    -0.29   0.780    -.9524246     .735514
+   lagRD_can |   1.048342   5.014977     0.21   0.839    -10.12572    12.22241
+  lagUnr_can |   1.933127    .487218     3.97   0.003     .8475374    3.018716
+ covid_dummy |   .0020871   .0074369     0.28   0.785    -.0144834    .0186577
+       _cons |  -.0628905   .1115088    -0.56   0.585    -.3113475    .1855665
+------------------------------------------------------------------------------
+
+. matrix list e(b)
+
+e(b)[1,13]
+       GovE_var      Edu_var      Cap_var       RD_var      Unr_var     lagy_can  lagGovE_can   lagEdu_can   lagCap_can    lagRD_can
+y1     1.160729   -.01964305    .01076146    2.1946954    -1.713541    .08506058    -.7843246   -.02829158    -.1084553    1.0483424
+
+     lagUnr_can  covid_dummy        _cons
+y1    1.9331268    .00208715   -.06289052
+
+. // Restore original data
+. restore
+
+. 
+. //---------------------
+. // Analysis for China
+. //---------------------
+. 
+. // Filter for China
+. preserve
+
+. keep if country == "China"
+(24 observations deleted)
+
+. 
+. // Check for missing values
+. misstable summarize y GovE_var Edu_var Cap_var RD_var Unr_var covid_dummy
+(variables nonmissing or string)
+
+. 
+. // Run regressions on raw variables including the COVID dummy and withot COVID dummy
+. di as text "Regression Results for China"
+Regression Results for China
+
+. reg y GovE_var Edu_var Cap_var RD_var Unr_var 
+
+      Source |       SS           df       MS      Number of obs   =        24
+-------------+----------------------------------   F(5, 18)        =      7.21
+       Model |  .010365484         5  .002073097   Prob > F        =    0.0007
+    Residual |  .005174842        18  .000287491   R-squared       =    0.6670
+-------------+----------------------------------   Adj R-squared   =    0.5745
+       Total |  .015540326        23  .000675666   Root MSE        =    .01696
+
+------------------------------------------------------------------------------
+           y | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+    GovE_var |  -3.572088   1.591701    -2.24   0.038    -6.916127   -.2280488
+     Edu_var |   -.025109   .0703587    -0.36   0.725    -.1729272    .1227093
+     Cap_var |   .6614336    .198605     3.33   0.004     .2441799    1.078687
+      RD_var |  -1.523004    1.85685    -0.82   0.423    -5.424101    2.378094
+     Unr_var |  -1.188892   1.378326    -0.86   0.400    -4.084648    1.706864
+       _cons |  -.0004598   .0562436    -0.01   0.994    -.1186232    .1177036
+------------------------------------------------------------------------------
+
+. matrix list e(b)
+
+e(b)[1,6]
+      GovE_var     Edu_var     Cap_var      RD_var     Unr_var       _cons
+y1   -3.572088  -.02510896   .66143356  -1.5230037  -1.1888924  -.00045981
+
+. reg y GovE_var Edu_var Cap_var RD_var Unr_var covid_dummy
+
+      Source |       SS           df       MS      Number of obs   =        24
+-------------+----------------------------------   F(6, 17)        =      5.77
+       Model |  .010419581         6  .001736597   Prob > F        =    0.0020
+    Residual |  .005120745        17   .00030122   R-squared       =    0.6705
+-------------+----------------------------------   Adj R-squared   =    0.5542
+       Total |  .015540326        23  .000675666   Root MSE        =    .01736
+
+------------------------------------------------------------------------------
+           y | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+    GovE_var |  -3.799112   1.715074    -2.22   0.041    -7.417601   -.1806221
+     Edu_var |   -.022697   .0722437    -0.31   0.757    -.1751178    .1297238
+     Cap_var |   .6638851   .2033742     3.26   0.005     .2348032    1.092967
+      RD_var |  -.8722916   2.443407    -0.36   0.725     -6.02743    4.282847
+     Unr_var |   -1.52703   1.620849    -0.94   0.359    -4.946723    1.892662
+ covid_dummy |  -.0064417   .0152005    -0.42   0.677     -.038512    .0256285
+       _cons |   .0092721    .061982     0.15   0.883    -.1214984    .1400426
+------------------------------------------------------------------------------
+
+. matrix list e(b)
+
+e(b)[1,7]
+       GovE_var      Edu_var      Cap_var       RD_var      Unr_var  covid_dummy        _cons
+y1   -3.7991117   -.02269699    .66388513   -.87229157   -1.5270304   -.00644174    .00927211
+
+. // Compute first differences for raw variables
+. gen lagy_china = y[_n-1]
+(1 missing value generated)
+
+. 
+. gen lagGovE_china = GovE_var[_n-1]
+(1 missing value generated)
+
+. 
+. gen lagEdu_china = Edu_var[_n-1]
+(1 missing value generated)
+
+. 
+. gen lagCap_china = Cap_var[_n-1]
+(1 missing value generated)
+
+. 
+. gen lagRD_china = RD_var[_n-1]
+(1 missing value generated)
+
+. 
+. gen lagUnr_china = Unr_var[_n-1]
+(1 missing value generated)
+
+. 
+. 
+. // Run regression on first differences for raw variables including the COVID dummy and withot COVID dummy
+. di as text "Lag Regression Results for China"
+Lag Regression Results for China
+
+. reg y GovE_var Edu_var Cap_var RD_var Unr_var lagy_china lagGovE_china lagEdu_china lagCap_china  lagRD_china lagUnr_china
+
+      Source |       SS           df       MS      Number of obs   =        23
+-------------+----------------------------------   F(11, 11)       =     10.37
+       Model |  .014171704        11  .001288337   Prob > F        =    0.0003
+    Residual |  .001367055        11  .000124278   R-squared       =    0.9120
+-------------+----------------------------------   Adj R-squared   =    0.8240
+       Total |  .015538758        22  .000706307   Root MSE        =    .01115
+
+-------------------------------------------------------------------------------
+            y | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+--------------+----------------------------------------------------------------
+     GovE_var |  -3.108347   1.587092    -1.96   0.076    -6.601513    .3848192
+      Edu_var |  -.0426196   .0487263    -0.87   0.400    -.1498653    .0646262
+      Cap_var |   .0587642   .2771955     0.21   0.836     -.551339    .6688673
+       RD_var |  -4.473906   6.084337    -0.74   0.478    -17.86544     8.91763
+      Unr_var |  -3.339401    1.30404    -2.56   0.026    -6.209573   -.4692292
+   lagy_china |   .4039518   .2005422     2.01   0.069    -.0374385    .8453422
+lagGovE_china |  -.3713905   1.871395    -0.20   0.846    -4.490304    3.747523
+ lagEdu_china |  -.0862309   .0527408    -1.63   0.130    -.2023127    .0298508
+ lagCap_china |  -.0280539   .2098568    -0.13   0.896    -.4899456    .4338378
+  lagRD_china |    4.23271   5.646245     0.75   0.469    -8.194591    16.66001
+ lagUnr_china |   6.051922   1.498286     4.04   0.002     2.754216    9.349628
+        _cons |    .071121   .0486697     1.46   0.172    -.0360002    .1782422
+-------------------------------------------------------------------------------
+
+. matrix list e(b)
+
+e(b)[1,12]
+        GovE_var       Edu_var       Cap_var        RD_var       Unr_var    lagy_china  lagGovE_ch~a  lagEdu_china  lagCap_china   lagRD_china
+y1     -3.108347    -.04261958     .05876415    -4.4739059    -3.3394009     .40395185    -.37139053    -.08623092     -.0280539     4.2327099
+
+    lagUnr_china         _cons
+y1      6.051922       .071121
+
+. reg y GovE_var Edu_var Cap_var RD_var Unr_var lagy_china lagGovE_china lagEdu_china lagCap_china  lagRD_china lagUnr_china covid_dummy
+
+      Source |       SS           df       MS      Number of obs   =        23
+-------------+----------------------------------   F(12, 10)       =     10.93
+       Model |  .014437596        12  .001203133   Prob > F        =    0.0003
+    Residual |  .001101162        10  .000110116   R-squared       =    0.9291
+-------------+----------------------------------   Adj R-squared   =    0.8441
+       Total |  .015538758        22  .000706307   Root MSE        =    .01049
+
+-------------------------------------------------------------------------------
+            y | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+--------------+----------------------------------------------------------------
+     GovE_var |  -3.353308   1.502227    -2.23   0.050    -6.700479   -.0061372
+      Edu_var |  -.0699752   .0491285    -1.42   0.185    -.1794403      .03949
+      Cap_var |  -.1057724   .2815908    -0.38   0.715    -.7331957     .521651
+       RD_var |   -13.6805   8.240372    -1.66   0.128     -32.0412    4.680192
+      Unr_var |  -1.017252    1.93389    -0.53   0.610    -5.326228    3.291723
+   lagy_china |   .5589615   .2135072     2.62   0.026     .0832379    1.034685
+lagGovE_china |   1.822025   2.257322     0.81   0.438    -3.207601    6.851651
+ lagEdu_china |  -.0839607   .0496665    -1.69   0.122    -.1946246    .0267033
+ lagCap_china |   .0010149   .1984224     0.01   0.996    -.4410978    .4431277
+  lagRD_china |   9.718528   6.380477     1.52   0.159     -4.49806    23.93512
+ lagUnr_china |   6.400207   1.428039     4.48   0.001     3.218338    9.582076
+  covid_dummy |   .0247031   .0158973     1.55   0.151    -.0107183    .0601245
+        _cons |   .0106293   .0601186     0.18   0.863    -.1233234     .144582
+-------------------------------------------------------------------------------
+
+. matrix list e(b)
+
+e(b)[1,13]
+        GovE_var       Edu_var       Cap_var        RD_var       Unr_var    lagy_china  lagGovE_ch~a  lagEdu_china  lagCap_china   lagRD_china
+y1    -3.3533083    -.06997516    -.10577237    -13.680502    -1.0172524     .55896153     1.8220249    -.08396068     .00101491     9.7185277
+
+    lagUnr_china   covid_dummy         _cons
+y1     6.4002071      .0247031     .01062926
+
+. 
+. // Close the log
+. log close
+      name:  <unnamed>
+       log:  E:\My University Doc\Fourth Semester\Research Proj Econ Pol & Sem\Proj\GDP_Analysis.log
+  log type:  text
+ closed on:   4 Dec 2024, 13:52:06
+------------------------------------------------------------------------------------------------------------------------------------------------
